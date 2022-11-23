@@ -20,7 +20,7 @@ Credits/ info from https://stackoverflow.com/questions/19989906/how-to-set-wallp
 
 # Pass Parameters to the Script
 
-Function HasselTheHoff(){
+Function SetWallpaper(){
 [CmdletBinding()]
 param(
 [Parameter()]
