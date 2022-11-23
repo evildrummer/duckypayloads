@@ -79,4 +79,4 @@ Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name TileWallpaper -Value 
 [Win32.Wallpaper]::SetWallpaper($Path)    
 SetWallpaper($MyWallpaper)
 }
-HasselTheHoff -Path "hasselhoff.jpg" -Style Fit
+SetWallpaper -Path "hasselhoff.jpg" -Style Fit
