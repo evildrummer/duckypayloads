@@ -1,56 +1,80 @@
-iwr https://wallpapercave.com/wp/wp3805150.jpg -OutFile hasselhoff.jpg
+iwr https://wallpapercave.com/wp/wp3805150.jpg -outfile "$Env:USERPROFILE\Desktop\hasselhoff.jpg"
+$imageName="$Env:USERPROFILE\Desktop\hasselhoff.jpg"
+Function Set-WallPaper {
+ 
+<#
+ 
+    .SYNOPSIS
+    Applies a specified wallpaper to the current user's desktop
+    
+    .PARAMETER Image
+    Provide the exact path to the image
+ 
+    .PARAMETER Style
+    Provide wallpaper style (Example: Fill, Fit, Stretch, Tile, Center, or Span)
+  
+    .EXAMPLE
+    Set-WallPaper -Image "C:\Wallpaper\Default.jpg"
+    Set-WallPaper -Image "C:\Wallpaper\Background.jpg" -Style Fit
+  
+#>
 
-[CmdletBinding()]
-$Style = 'Fill'
-$Tiled = '0'
-#---------------------------------------------------#
-#  Hash Table for WallPaper Style Value             #
-#---------------------------------------------------#
-
-$Wstyle = @{
-            'Centered'  = 0
-            'Stretched' = 2
-            'Fill'      = 10
-            'Fit'       = 6
-            'Span'      = 22
+ 
+param (
+    [parameter(Mandatory=$True)]
+    # Provide path to image
+    [string]$Image,
+    # Provide wallpaper style that you would like applied
+    [parameter(Mandatory=$False)]
+    [ValidateSet('Fill', 'Fit', 'Stretch', 'Tile', 'Center', 'Span')]
+    [string]$Style
+)
+ 
+$WallpaperStyle = Switch ($Style) {
+  
+    "Fill" {"10"}
+    "Fit" {"6"}
+    "Stretch" {"2"}
+    "Tile" {"0"}
+    "Center" {"0"}
+    "Span" {"22"}
+  
+}
+ 
+If($Style -eq "Tile") {
+ 
+    New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -PropertyType String -Value $WallpaperStyle -Force
+    New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name TileWallpaper -PropertyType String -Value 1 -Force
+ 
+}
+Else {
+ 
+    New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -PropertyType String -Value $WallpaperStyle -Force
+    New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name TileWallpaper -PropertyType String -Value 0 -Force
+ 
+}
+ 
+Add-Type -TypeDefinition @" 
+using System; 
+using System.Runtime.InteropServices;
+  
+public class Params
+{ 
+    [DllImport("User32.dll",CharSet=CharSet.Unicode)] 
+    public static extern int SystemParametersInfo (Int32 uAction, 
+                                                   Int32 uParam, 
+                                                   String lpvParam, 
+                                                   Int32 fuWinIni);
+}
+"@ 
+  
+    $SPI_SETDESKWALLPAPER = 0x0014
+    $UpdateIniFile = 0x01
+    $SendChangeEvent = 0x02
+  
+    $fWinIni = $UpdateIniFile -bor $SendChangeEvent
+  
+    $ret = [Params]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $Image, $fWinIni)
 }
 
-#-----------------------------------------------------------------#
-#  Hash Table for Tiles Option. Tiles can be set to 1             #
-#  if Wstyle is centered. Otherwise, should be set to 0           #
-#-----------------------------------------------------------------#
-
-$WTile = @{
-            'Tiles'     = 1
-            'NoTiles'   = 0                      
-        }
-
-    #Main Code
-    $code = @'
-    using System.Runtime.InteropServices;
-    namespace Win32{
-     public class Wallpaper{
-        [DllImport("user32.dll", CharSet=CharSet.Auto)]
-         static extern int SystemParametersInfo (int uAction , int uParam , string lpvParam , int fuWinIni) ;
-         public static void SetWallpaper(string thePath){
-            SystemParametersInfo(20,0,thePath,3);
-         }
-    }
- }
-'@
-
-if ($error[0].exception -like "*Cannot add type. The type name 'Win32.Wallpaper' already exists.*")
-{
-    write-host "Win32.Wallpaer assemblies already loaded"
-    write-host "Proceeding"
-} else {
-    add-type $code
-}
-
-# Code for settings TileStyle and Wallpaper Style
-Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name wallpaperstyle -Value $Wstyle[$Style]
-Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name TileWallpaper -Value $WTile[$Tiled]
-
-#Apply the Change on the system
-$Path="hasselhoff.jpg"
-[Win32.Wallpaper]::SetWallpaper($Path)
+Set-WallPaper -Image "$Env:USERPROFILE\Desktop\$ImageName.jpg" -Style Center
