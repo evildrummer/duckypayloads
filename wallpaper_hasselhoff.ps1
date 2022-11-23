@@ -4,8 +4,10 @@ iwr https://wallpapercave.com/wp/wp3805150.jpg -OutFile hasselhoff.jpg
 param(
 [Parameter()]
 #[string]$Path,
-[ValidateSet('Centered', 'Stretched', 'Fill', 'Fit', 'Span')] $Style = 'Fill',
-[ValidateSet('Tiles','NoTiles')] $Tiled = '0')
+#[ValidateSet('Centered', 'Stretched', 'Fill', 'Fit', 'Span')] 
+$Style = 'Fill',
+#[ValidateSet('Tiles','NoTiles')] 
+$Tiled = '0')
 #---------------------------------------------------#
 #  Hash Table for WallPaper Style Value             #
 #---------------------------------------------------#
